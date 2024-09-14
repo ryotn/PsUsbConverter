@@ -2,7 +2,7 @@
 零環 氏の[PS1/PS2-USBコンバーター [LAY-002-01]](https://lay31415.booth.pm/items/5029789)にDDR miniモードを追加したFW  
 
 ## 導入方法
-下記Webサイトのプログラム書き換え手順・ソースコードで、PsUsbConverter.inoを書き込む  
+下記Webサイトのプログラム書き換え手順・ソースコードで、[PsUsbConverter.ino](https://github.com/ryotn/PsUsbConverter/blob/main/PsUsbConverter.ino)を書き込む  
 https://lay.bm5keys-forever.com/2023/08/ps-usb_converter/
 
 ## 使い方
