@@ -93,10 +93,12 @@ byte setDpad(bool upKey, bool downKey, bool leftKey, bool rightKey) {
 
 // Mode pattern
 ////////////////////
-enum Mode {POV, BUTTON, KONAMI, DDR, MODE_LEN};
+enum Mode {POV, BUTTON, KONAMI, DDR_MINI, MODE_LEN};
 byte mode;
 enum Dpad {DPAD, LS, RS, DPAD_LEN};
 byte dpad;
+enum Ddr {HAND, FOOT, DDR_LEN};
+byte ddr;
 
 // Function blank LED
 void blank_LED() {
@@ -125,10 +127,23 @@ void show_LED() {
     case KONAMI:
       digitalWrite(LED_R, HIGH);
       break;
-    case DDR:
+    case DDR_MINI:
       digitalWrite(LED_R, HIGH);
       digitalWrite(LED_B, HIGH);
       digitalWrite(LED_G, HIGH);
+
+      delay(100);
+      blank_LED();
+      switch (ddr) {
+        case HAND:
+          digitalWrite(LED_B, HIGH);
+          digitalWrite(LED_G, HIGH);
+          break;
+        case FOOT:
+          digitalWrite(LED_R, HIGH);
+          digitalWrite(LED_B, HIGH);
+          break;
+      }
       break;
   }
 }
@@ -155,6 +170,8 @@ void setup() {
   if (mode >= MODE_LEN) mode = 0;
   EEPROM.get(1, dpad);
   if (dpad >= DPAD_LEN) dpad = 0;
+  EEPROM.get(2, ddr);
+  if (ddr >= DDR_LEN) ddr = 0;
 
   pinMode(LED_R, OUTPUT);
   pinMode(LED_G, OUTPUT);
@@ -405,7 +422,7 @@ void loop() {
       NKROKeyboard.send();
       delayMicroseconds(3500);
       break;
-    case DDR:
+    case DDR_MINI:
       // DDR mini Mode
       ////////////////////
 
@@ -415,14 +432,64 @@ void loop() {
       Gamepad.rxAxis(0);
       Gamepad.ryAxis(0);
 
-      setButton(5, state_D | state_X);
-      setButton(6, state_L | state_Squ);
-      setButton(11, state_U | state_Tri);
-      setButton(12, state_R | state_O);
-      setButton(7, state_L1 | state_L2);
-      setButton(8, state_R1 | state_R2);
-      setButton(2, state_Sl);
-      setButton(1, state_St);
+      // Ddr select
+      ////////////////////
+      if (state_Sl && state_St) {
+        if (!state_U && state_L && !state_D && !state_R){
+          ddr = HAND;
+        }
+        if (!state_U && !state_L && !state_D && state_R){
+          ddr = FOOT;
+        }
+        if (ddr >= DDR_LEN) ddr = 0;
+
+        if ((state_L || state_D || state_R) && !(state_L && state_D && state_R)){
+          // Reset state
+          Gamepad.releaseAll();
+          Gamepad.write();
+          NKROKeyboard.releaseAll();
+          NKROKeyboard.send();
+
+          // mode save
+          EEPROM.put(2, ddr);
+
+          // LED flashes according to the selected mode
+          flash_LED();
+        }
+      }
+
+      bool arrowUp = state_U;
+      bool arrowDown = state_D;
+      bool arrowLeft = state_L;
+      bool arrowRight = state_R;
+
+      bool cursorLeft = state_L1 | state_L2;
+      bool cursorRight = state_R1 | state_R2;
+      
+      bool start = state_St;
+      bool pause = state_Sl;
+
+      switch (ddr) {
+        case HAND:
+          arrowUp = arrowUp | state_Tri;
+          arrowDown = arrowDown | state_X;
+          arrowLeft = arrowLeft | state_Squ;
+          arrowRight = arrowRight | state_O;
+          break;
+        case FOOT:
+          cursorLeft = cursorLeft | state_X;
+          cursorRight = cursorRight | state_O;
+          break;
+      }
+
+      setButton(5, arrowDown);
+      setButton(6, arrowLeft);
+      setButton(11, arrowUp);
+      setButton(12, arrowRight);
+      setButton(7, cursorLeft);
+      setButton(8, cursorRight);
+      setButton(2, pause);
+      setButton(1, start);
       break;
     default:
       // Irregular
