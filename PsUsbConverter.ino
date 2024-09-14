@@ -93,7 +93,7 @@ byte setDpad(bool upKey, bool downKey, bool leftKey, bool rightKey) {
 
 // Mode pattern
 ////////////////////
-enum Mode {POV, BUTTON, KONAMI, MODE_LEN};
+enum Mode {POV, BUTTON, KONAMI, DDR, MODE_LEN};
 byte mode;
 enum Dpad {DPAD, LS, RS, DPAD_LEN};
 byte dpad;
@@ -124,6 +124,11 @@ void show_LED() {
       break;
     case KONAMI:
       digitalWrite(LED_R, HIGH);
+      break;
+    case DDR:
+      digitalWrite(LED_R, HIGH);
+      digitalWrite(LED_B, HIGH);
+      digitalWrite(LED_G, HIGH);
       break;
   }
 }
@@ -399,6 +404,25 @@ void loop() {
       // Keyboard Send
       NKROKeyboard.send();
       delayMicroseconds(3500);
+      break;
+    case DDR:
+      // DDR mini Mode
+      ////////////////////
+
+      // Set Joystick
+      Gamepad.xAxis(0);
+      Gamepad.yAxis(0);
+      Gamepad.rxAxis(0);
+      Gamepad.ryAxis(0);
+
+      setButton(5, state_D | state_X);
+      setButton(6, state_L | state_Squ);
+      setButton(11, state_U | state_Tri);
+      setButton(12, state_R | state_O);
+      setButton(7, state_L1 | state_L2);
+      setButton(8, state_R1 | state_R2);
+      setButton(2, state_Sl);
+      setButton(1, state_St);
       break;
     default:
       // Irregular
